@@ -62,6 +62,9 @@ void loop() {
   
   int difficulty = 6;
   while (one_round(difficulty)) {
+
+    //TODO Show difficulty here
+    
     difficulty++;
 
     //C5 E5 G5 C6
