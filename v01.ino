@@ -1,3 +1,6 @@
+#include <avr/power.h>
+#include <avr/sleep.h>
+
 #define LED1  9 //PB0
 #define LED2 11 //PB2
 #define LED3 14 //PB5
@@ -16,6 +19,8 @@
 #define TONE3 2000
 #define TONE4 3000
 
+#define INT0_PIN 4
+
 #define ENTRY_TIME_LIMIT 3000
 
 bool soundEnabled = true;
@@ -32,6 +37,7 @@ void setup() {
   pinMode(BUTTON2, INPUT_PULLUP);
   pinMode(BUTTON3, INPUT_PULLUP);
   pinMode(BUTTON4, INPUT_PULLUP);
+  pinMode(INT0_PIN, INPUT);
 
   if (digitalRead(BUTTON1) == LOW) {
     soundEnabled = false;
@@ -39,6 +45,19 @@ void setup() {
 }
 
 void loop() {
+  //go to sleep
+  sleep_enable(); // set safety pin to allow cpu sleep
+  attachInterrupt(0, intrpt, LOW); // attach interrupt 0 (pin 2) and run function intrpt when pin 2 gets LOW
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN); // set sleep mode to have most power savings
+  cli(); // disable interrupts during timed sequence
+  sei(); // set Global Interrupt Enable
+  sleep_cpu(); // power down cpu
+  
+  //wake up here
+  sleep_disable(); // set safety pin to NOT allow cpu sleep
+  detachInterrupt(0); // detach interrupt to allow other usage of this pin
+
+  //play game
   play_all_tones();
   
   int difficulty = 6;
@@ -60,8 +79,10 @@ void loop() {
   play_tone(12, 200);
   play_tone(10, 400);
   digitalWrite(LED1, LOW);
+}
 
-  delay(2000);
+void intrpt() {
+  //do nothing here, just wake up
 }
 
 bool one_round(int difficulty) {
@@ -130,23 +151,6 @@ void play_tone(int tone_nr, int length_ms) {
   }
   delay(length_ms);
   noTone(BUZZER1);
-
-  /*
-  int delay_us = 500000 / tone_hz;
-
-  long length_us = length_ms * (long)1000;
-
-  while (length_us > (delay_us * 2)) {
-    length_us -= delay_us * 2;
-
-    digitalWrite(BUZZER1, LOW);
-    digitalWrite(BUZZER2, HIGH);
-    delayMicroseconds(delay_us);
-
-    digitalWrite(BUZZER1, HIGH);
-    digitalWrite(BUZZER2, LOW);
-    delayMicroseconds(delay_us);
-  }*/
 }
 
 int tone_nr_to_hz(int nr) {
