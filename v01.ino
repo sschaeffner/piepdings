@@ -19,7 +19,7 @@
 #define TONE3 2000
 #define TONE4 3000
 
-#define INT0_PIN 4
+#define I0_PIN 4
 
 #define ENTRY_TIME_LIMIT 3000
 
@@ -37,7 +37,7 @@ void setup() {
   pinMode(BUTTON2, INPUT_PULLUP);
   pinMode(BUTTON3, INPUT_PULLUP);
   pinMode(BUTTON4, INPUT_PULLUP);
-  pinMode(INT0_PIN, INPUT);
+  pinMode(I0_PIN, INPUT);
 
   if (digitalRead(BUTTON1) == LOW) {
     soundEnabled = false;
