@@ -24,7 +24,7 @@
 #define ENTRY_TIME_LIMIT 3000
 
 bool soundEnabled = true;
-
+bool demoMode = false;
 void setup() {
   // put your setup code here, to run once:
   pinMode(BUZZER1, OUTPUT);
@@ -39,21 +39,66 @@ void setup() {
   pinMode(BUTTON4, INPUT_PULLUP);
   pinMode(I0_PIN, INPUT);
 
-  if (digitalRead(BUTTON1) == LOW) {
-    soundEnabled = false;
+  if (digitalRead(BUTTON3) == LOW) {
+    demoMode = true;
   }
 }
 
 void loop() {
-  //go to sleep
-  sleep_enable(); // set safety pin to allow cpu sleep
-  pciSetup(BUTTON2);
-  set_sleep_mode(SLEEP_MODE_STANDBY); // set sleep mode
-  sleep_cpu(); // power down cpu
-  
-  //wake up here
-  sleep_disable(); // set safety pin to NOT allow cpu sleep
-  detachInterrupt(0); // detach interrupt to allow other usage of this pin
+  if (demoMode) {
+    int c = 0;
+    while (digitalRead(BUTTON2) == HIGH) {
+      switch(c) {
+        case 0:
+          digitalWrite(LED1, HIGH);
+          digitalWrite(LED2, LOW);
+          digitalWrite(LED3, LOW);
+          digitalWrite(LED4, LOW);
+          break;
+        case 2:
+          digitalWrite(LED1, LOW);
+          digitalWrite(LED2, HIGH);
+          digitalWrite(LED3, LOW);
+          digitalWrite(LED4, LOW);
+          break;
+        case 3:
+          digitalWrite(LED1, LOW);
+          digitalWrite(LED2, LOW);
+          digitalWrite(LED3, HIGH);
+          digitalWrite(LED4, LOW);
+          break;
+        case 4:
+          digitalWrite(LED1, LOW);
+          digitalWrite(LED2, LOW);
+          digitalWrite(LED3, LOW);
+          digitalWrite(LED4, HIGH);
+          break;
+      }
+      delay(80);
+      c += 1;
+      if (c > 4) c = 0;
+    }
+  } else {
+    //go to sleep
+    sleep_enable(); // set safety pin to allow cpu sleep
+    pciSetup(BUTTON2);
+    set_sleep_mode(SLEEP_MODE_STANDBY); // set sleep mode
+    sleep_cpu(); // power down cpu
+    
+    //wake up here
+    sleep_disable(); // set safety pin to NOT allow cpu sleep
+    detachInterrupt(0); // detach interrupt to allow other usage of this pin
+  }
+
+  if (digitalRead(BUTTON1) == LOW) {
+    soundEnabled = false;
+  }
+
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+  digitalWrite(LED4, LOW);
+
 
   //play game
   play_all_tones();
@@ -80,9 +125,9 @@ void loop() {
 }
 
 void pciSetup(byte pin) {
-  *digitalPinToPCMSK(BUTTON3) |= bit (digitalPinToPCMSKbit(BUTTON3));// enable pin
+  *digitalPinToPCMSK(pin) |= bit (digitalPinToPCMSKbit(pin));// enable pin
   GIMSK = 0b00100000;// turns on pin change interrupts
-  PCMSK = 0b00010000;// turn on interrupts on pins PB4
+  //PCMSK = 0b00010000;// turn on interrupts on pins PB4
   sei();
 }
 
