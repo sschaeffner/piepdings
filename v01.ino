@@ -47,10 +47,8 @@ void setup() {
 void loop() {
   //go to sleep
   sleep_enable(); // set safety pin to allow cpu sleep
-  attachInterrupt(0, intrpt, LOW); // attach interrupt 0 (pin 2) and run function intrpt when pin 2 gets LOW
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN); // set sleep mode to have most power savings
-  cli(); // disable interrupts during timed sequence
-  sei(); // set Global Interrupt Enable
+  pciSetup(BUTTON2);
+  set_sleep_mode(SLEEP_MODE_STANDBY); // set sleep mode
   sleep_cpu(); // power down cpu
   
   //wake up here
@@ -62,9 +60,6 @@ void loop() {
   
   int difficulty = 6;
   while (one_round(difficulty)) {
-
-    //TODO Show difficulty here
-    
     difficulty++;
 
     //C5 E5 G5 C6
@@ -84,7 +79,14 @@ void loop() {
   digitalWrite(LED1, LOW);
 }
 
-void intrpt() {
+void pciSetup(byte pin) {
+  *digitalPinToPCMSK(BUTTON3) |= bit (digitalPinToPCMSKbit(BUTTON3));// enable pin
+  GIMSK = 0b00100000;// turns on pin change interrupts
+  PCMSK = 0b00010000;// turn on interrupts on pins PB4
+  sei();
+}
+
+ISR (PCINT0_vect) {
   //do nothing here, just wake up
 }
 
